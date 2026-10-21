@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>PCLBAI</AssemblyName>
+    <RootNamespace>PCLBAI</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+    <Version>1.1.0</Version>
+    <Product>PCL-BAI 启动器</Product>
+    <Company>第三方基于 PCL 二次创作</Company>
+    <Copyright>基于 PCL（作者：龙腾猫跃）的第三方二次创作，遵循《PCL 分发有限许可》</Copyright>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <!-- 许可文件随程序分发：需与 src 同级目录下的 LICENCE 保持同步 -->
+  <ItemGroup>
+    <None Include="..\..\LICENCE" Link="LICENCE" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\LICENCE')" />
+  </ItemGroup>
+
+  <!-- 单文件 + 裁剪：体积从 63 MB 降到约 20 MB。
+       注意：必须不引用 WinForms，否则 dotnet 拒绝裁剪（NETSDK1175）。 -->
+  <PropertyGroup Condition="'$(SingleFile)' == 'true'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>none</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- 自检开关：无人值守测试（版本清单 / 类型区分 / Json 解析 / 下载 / SHA1 / 加载器 / 知识库） -->
+  <PropertyGroup>
+    <StartupObject Condition="'$(SelfTest)' == 'true'">PCLBAI.SelfTest</StartupObject>
+    <DefineConstants Condition="'$(SelfTest)' == 'true'">$(DefineConstants);SELFTEST</DefineConstants>
+  </PropertyGroup>
+
+</Project>

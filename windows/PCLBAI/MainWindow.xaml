@@ -1,0 +1,358 @@
+<Window x:Class="PCLBAI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PCL-BAI 启动器 — 下载 / 验证 / 版本问题详解"
+        Height="800" Width="1280" MinHeight="640" MinWidth="1040"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F6F8"
+        FontFamily="Microsoft YaHei UI">
+
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ================= 顶部 ================= -->
+        <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.06" />
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="PCL-BAI" FontSize="20" FontWeight="Bold" Foreground="#1D6FC4" />
+                    <TextBlock Text="下载 · 验证 · 加载器 · 版本 Bug 详解" Style="{StaticResource SubText}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="游戏目录：" VerticalAlignment="Center" Foreground="#6B7280" FontSize="12" />
+                        <TextBox x:Name="txtFolder" Width="380" Margin="4,0,6,0" />
+                        <Button x:Name="BtnSaveSettings" Content="应用" Click="BtnSaveSettings_Click" />
+                        <Button x:Name="BtnOpenFolder" Content="打开目录" Click="BtnOpenFolder_Click" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Java：" VerticalAlignment="Center" Foreground="#6B7280" FontSize="12" />
+                        <TextBox x:Name="txtJava" Width="300" Margin="4,0,4,0" />
+                        <Button x:Name="BtnPickJava" Content="浏览" Click="BtnPickJava_Click" Margin="0,0,14,0" />
+                        <TextBlock Text="并发数：" VerticalAlignment="Center" Foreground="#6B7280" FontSize="12" />
+                        <TextBox x:Name="txtThreads" Width="50" Text="24" Margin="4,0,10,0" />
+                        <CheckBox x:Name="chkSkipAssets" Content="校验跳过资源" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="下载源：" VerticalAlignment="Center" Foreground="#6B7280" FontSize="12" />
+                        <ComboBox x:Name="cboSource" Width="210" SelectedIndex="0" Margin="4,0,0,0">
+                            <ComboBoxItem Content="自动（镜像优先，失败回落官方）" />
+                            <ComboBoxItem Content="仅 BMCLAPI 镜像" />
+                            <ComboBoxItem Content="仅 Mojang 官方" />
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnRefresh" Content="刷新版本列表" Click="BtnRefresh_Click" />
+                    <Button x:Name="BtnDownload" Content="↓ 下载" Style="{StaticResource PrimaryButton}" Click="BtnDownload_Click" />
+                    <Button x:Name="BtnVerify" Content="✓ 验证游戏文件" Style="{StaticResource PrimaryButton}" Click="BtnVerify_Click" />
+                    <Button x:Name="BtnCancel" Content="取消" Click="BtnCancel_Click" IsEnabled="False" Margin="0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================= 中部三栏 ================= -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="290" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="400" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：版本列表 -->
+            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="版本列表" Style="{StaticResource TitleText}" Margin="0,0,0,8" />
+
+                    <TextBox x:Name="txtSearch" Grid.Row="1" Margin="0,0,0,8" TextChanged="TxtSearch_TextChanged" />
+
+                    <!-- 正式版 / 快照 明确分开 -->
+                    <StackPanel Grid.Row="2" Margin="0,0,0,8">
+                        <ComboBox x:Name="cboType" SelectedIndex="0" SelectionChanged="CboType_SelectionChanged">
+                            <ComboBoxItem Content="全部版本" />
+                            <ComboBoxItem Content="只看正式版" />
+                            <ComboBoxItem Content="只看快照" />
+                            <ComboBoxItem Content="只看远古版本" />
+                        </ComboBox>
+                        <TextBlock x:Name="TxtVersionCount" Text="{Binding VersionCountText}"
+                                   Style="{StaticResource SubText}" Margin="2,6,0,0" FontSize="11" />
+                    </StackPanel>
+
+                    <ListBox x:Name="LstVersions" Grid.Row="3" SelectionChanged="LstVersions_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="2,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Id}" FontWeight="SemiBold" FontSize="13" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <TextBlock Text="{Binding TypeName}" FontSize="10"
+                                                       Foreground="{Binding TypeColor}" FontWeight="SemiBold" />
+                                            <TextBlock Text=" · " FontSize="10" Foreground="#9CA3AF" />
+                                            <TextBlock Text="{Binding ReleaseTime, StringFormat={}{0:yyyy-MM-dd}, Mode=OneWay}"
+                                                       FontSize="10" Foreground="#9CA3AF" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="#F1F3F5" CornerRadius="4"
+                                            Padding="5,1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding MajorTag}" FontSize="10" Foreground="#868E96" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock x:Name="TxtVersionJson" Grid.Row="4" Style="{StaticResource SubText}"
+                               Margin="0,8,0,0" FontSize="11" Text="请选择一个版本。" />
+                </Grid>
+            </Border>
+
+            <!-- 中：验证结果 / 加载器 -->
+            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="12">
+                <TabControl Background="Transparent" BorderThickness="0">
+
+                    <TabItem Header="模组加载器">
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="选择加载器：" VerticalAlignment="Center" Foreground="#6B7280" FontSize="12" />
+                                <ComboBox x:Name="cboLoader" Width="170" Margin="6,0,0,0"
+                                          SelectionChanged="CboLoader_SelectionChanged" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="1" Text="{Binding LoaderHint}" Style="{StaticResource SubText}"
+                                       Margin="0,0,0,8" />
+
+                            <TextBlock Grid.Row="2" Text="可用版本（双击安装 Forge / NeoForge）"
+                                       Style="{StaticResource TitleText}" FontSize="13" Margin="0,4,0,6" />
+
+                            <DataGrid x:Name="LstLoader" Grid.Row="3"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#F1F3F5" RowHeight="30"
+                                      BorderBrush="#E1E4E8" BorderThickness="1"
+                                      Background="White" RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                                      CanUserResizeRows="False" SelectionMode="Single"
+                                      MouseDoubleClick="LstLoader_MouseDoubleClick">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="加载器" Binding="{Binding Loader}" Width="90" />
+                                    <DataGridTextColumn Header="版本" Binding="{Binding Version}" Width="120" />
+                                    <DataGridTextColumn Header="说明" Binding="{Binding Note}" Width="80" />
+                                    <DataGridTextColumn Header="对应 MC" Binding="{Binding McVersion}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <TextBlock Grid.Row="4" Style="{StaticResource SubText}" Margin="0,8,0,0" FontSize="11"
+                                       Text="Forge / NeoForge 会自动下载官方安装器并执行 --installClient；Fabric / Quilt 请到官网取安装器。快照与远古版本不提供加载器版本。" />
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="验证游戏文件">
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="{Binding Summary}" Foreground="{Binding SummaryBrush}"
+                                       FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                            <DataGrid x:Name="LstVerify" Grid.Row="1"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#F1F3F5" RowHeight="30"
+                                      BorderBrush="#E1E4E8" BorderThickness="1"
+                                      Background="White" RowBackground="White" AlternatingRowBackground="#FAFBFC"
+                                      CanUserResizeRows="False" SelectionMode="Single"
+                                      MouseDoubleClick="LstVerify_MouseDoubleClick"
+                                      EnableRowVirtualization="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="状态" Binding="{Binding StateName}" Width="80" />
+                                    <DataGridTextColumn Header="类型" Binding="{Binding Entry.Group}" Width="70" />
+                                    <DataGridTextColumn Header="文件" Binding="{Binding RelativePath}" Width="*" />
+                                    <DataGridTextColumn Header="说明" Binding="{Binding Detail}" Width="280" />
+                                </DataGrid.Columns>
+                                <DataGrid.RowStyle>
+                                    <Style TargetType="DataGridRow">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsOk}" Value="False">
+                                                <Setter Property="Background" Value="#FFF5F5" />
+                                                <Setter Property="Foreground" Value="#C92A2A" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGrid.RowStyle>
+                            </DataGrid>
+
+                            <TextBlock Grid.Row="2" Style="{StaticResource SubText}" Margin="0,8,0,0" FontSize="11"
+                                       Text="校验项目：客户端 jar、全部支持库（含 Windows natives）、资源索引与全部资源文件。依据版本 Json 中给出的 SHA1 与文件大小逐一比对。" />
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="关于与许可">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+                            <StackPanel>
+
+                                <!-- 按《PCL 分发有限许可》重度使用条款第 3 条：
+                                     关于页面首位给出龙腾猫跃的署名及赞助链接 -->
+                                <TextBlock Style="{StaticResource TitleText}" Text="署名与致谢" Margin="0,0,0,6" />
+                                <Border Background="#E8F1FB" CornerRadius="6" Padding="12" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock FontSize="13" TextWrapping="Wrap" Margin="0,0,0,8"
+                                                   Text="本软件（PCL-BAI）是第三方基于 PCL（Plain Craft Launcher）独立进行二次创作的产物，并非 PCL 官方出品，与龙腾猫跃及 PCL 官方团队无隶属关系。" />
+                                        <TextBlock FontSize="13" TextWrapping="Wrap" Margin="0,0,0,4"
+                                                   Text="原项目：PCL（Plain Craft Launcher）" />
+                                        <TextBlock FontSize="13" TextWrapping="Wrap" Margin="0,0,0,4"
+                                                   Text="原作者：龙腾猫跃" />
+                                        <TextBlock FontSize="13" TextWrapping="Wrap" Margin="0,0,0,4">
+                                            <Run Text="源码：https://github.com/Meloong-Git/PCL" />
+                                        </TextBlock>
+                                        <TextBlock FontSize="13" TextWrapping="Wrap" Margin="0,0,0,4">
+                                            <Run Text="赞助链接：https://afdian.com/a/LTCat" />
+                                        </TextBlock>
+                                        <TextBlock Style="{StaticResource SubText}" FontSize="11" Margin="0,6,0,0"
+                                                   Text="如果你觉得 PCL 好用，请前往上方链接支持原作者。" />
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="本软件的许可" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="本软件继续遵循《PCL 分发有限许可》与《PCL 存储库合理使用指南》。完整条款见程序目录下的 LICENCE 文件，可参考 CC BY-SA 协议。《PCL 分发有限许可》原文：https://shimo.im/docs/rGrd8pY8xWkt6ryW" />
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="名称说明" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="依《PCL 存储库合理使用指南》重度使用条款第 2 条，本软件名称以 Plain Craft Launcher (PCL) 开头，后缀 BAI 表明其为第三方修改版本，不暗示与官方存在关联。" />
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="这个启动器做什么" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="四件事：下载游戏文件、验证文件完整性、查询并安装模组加载器、按版本给出已知 Bug 详解。不登录账号、不启动游戏本体。" />
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="正式版与快照" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="类型依据版本清单的 type 字段判断，不靠版本号正则猜，因此 24w14a、1.21.4-pre1 都能正确归类。左上「全部版本」下拉可只看正式版或只看快照；列表标题会显示两者的确切数量。" />
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="模组加载器" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="选中版本后切到「模组加载器」页，选择 Forge / NeoForge / Fabric / Quilt / OptiFine，程序会在线查询该版本可用的加载器版本。Forge 与 NeoForge 支持双击自动安装（需先在顶部指定 java.exe）。加载器只跟进正式版，快照与远古版本不提供。" />
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="验证与校验" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="逐个比对 SHA1。缺失、大小不符、哈希不符的文件会标红并排在最前。验证只读不修改，发现问题请重新点「下载」补全。" />
+
+                                <TextBlock Style="{StaticResource TitleText}" Text="下载源" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,14"
+                                           Text="镜像改写规则参考 PCL2 源码的下载源实现：资源走 BMCLAPI /assets，支持库走 /maven 与 /libraries，版本 Json 与 client jar 走 BMCLAPI 根路径。自动模式下镜像优先、失败自动回落官方。" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+            </Border>
+
+            <!-- 右：版本问题详解 -->
+            <Border Grid.Column="4" Background="White" CornerRadius="8" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="2*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="大版本 Bug 详解" Style="{StaticResource TitleText}" />
+
+                    <TextBlock Grid.Row="1" Text="{Binding BugHint}" Style="{StaticResource SubText}"
+                               Margin="0,6,0,6" FontSize="11" />
+
+                    <ListBox x:Name="LstBugs" Grid.Row="2" SelectionChanged="LstBugs_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="2,4">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Background="{Binding LevelColor}" CornerRadius="3"
+                                                Padding="5,0" Margin="0,0,6,0">
+                                            <TextBlock Text="{Binding LevelName}" Foreground="White" FontSize="10" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" FontSize="13" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Desc}" Style="{StaticResource SubText}"
+                                               FontSize="11" Margin="0,3,0,0" />
+                                    <TextBlock Text="{Binding LoaderTags}" FontSize="10"
+                                               Foreground="#9CA3AF" Margin="0,2,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Grid.Row="3" Text="详细说明" Style="{StaticResource TitleText}"
+                               Margin="0,10,0,6" FontSize="13" />
+
+                    <Border Grid.Row="4" Background="#FAFBFC" BorderBrush="#E1E4E8" BorderThickness="1"
+                            CornerRadius="6" Padding="10">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="TxtBugDetail" Style="{StaticResource SubText}"
+                                       TextWrapping="Wrap" Text="在上方列表中选择一条问题，可查看详细说明。" />
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= 底部状态栏 ================= -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="14,10" Margin="0,12,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding StageText}" FontWeight="SemiBold"
+                               Foreground="#1D6FC4" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding StatusText}" TextTrimming="CharacterEllipsis"
+                               Style="{StaticResource SubText}" VerticalAlignment="Center" />
+                </Grid>
+                <ProgressBar Grid.Row="1" Value="{Binding ProgressValue}" Maximum="100" Margin="0,8,0,0" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

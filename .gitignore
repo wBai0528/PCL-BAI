@@ -1,0 +1,40 @@
+# 构建产物
+bin/
+obj/
+dist/
+build/
+*.user
+*.suo
+.vs/
+
+# .NET
+*.dll
+*.pdb
+*.exe
+*.zip
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android / Gradle
+.gradle/
+local.properties
+*.apk
+*.aab
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 缓存与临时文件
+__pycache__/
+*.log
+*.tmp
+*.pcltmp
+.idea/
+.DS_Store
+Thumbs.db
+
+# 本地配置
+*.settings.json
+appsettings.local.json
+
+# 开发工具（含完整工具链，不入库）
+tools/

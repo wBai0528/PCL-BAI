@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>PCLBAI</AssemblyName>
+    <RootNamespace>PCLBAIBoot</RootNamespace>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>full</TrimMode>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <DebugType>none</DebugType>
+    <Version>1.1.0</Version>
+    <Product>PCL-BAI 引导器</Product>
+    <Description>首次运行下载 .NET 运行时并启动 PCL-BAI</Description>
+  </PropertyGroup>
+
+  <!--
+    主程序包（framework-dependent 构建，约 120 KB）内嵌进引导器。
+    构建时传入：-p:AppPayload=<app.zip 的绝对路径>
+  -->
+  <ItemGroup Condition="'$(AppPayload)' != '' And Exists('$(AppPayload)')">
+    <EmbeddedResource Include="$(AppPayload)" LogicalName="app.zip" />
+  </ItemGroup>
+</Project>
